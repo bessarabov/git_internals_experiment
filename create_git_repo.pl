@@ -17,6 +17,7 @@ use open qw(:std :utf8);
 use boolean;
 use DDP;
 use Carp;
+use Encode;
 use Git::Repository;
 use File::Temp qw(tempdir);
 
@@ -73,9 +74,11 @@ sub set_date {
 sub create_blob_object {
     my (%params) = @_;
 
+    my $bytes = encode_utf8($params{content});
+
     my $sha1 = $params{gr}->run(
         qw( hash-object -t blob -w --stdin ),
-        { input => $params{content} },
+        { input => $bytes },
     );
 
     return $sha1;
@@ -175,7 +178,7 @@ sub make_second_commit {
 
     my $gr = delete $params{gr};
 
-    $FILES{'aaa.md'} = "line 1\nline 22\nline 3\n";
+    $FILES{'aaa.md'} = "line 1\nline 22 АБВ\nline 3\n";
 
     my $tree_sha1 = create_blobs_and_tree(
         gr => $gr,
