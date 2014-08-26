@@ -25,6 +25,7 @@ use lib::abs qw(
 );
 
 # global vars
+my %FILES;
 
 # subs
 sub clean_env {
@@ -92,6 +93,29 @@ sub create_tree_object {
     $params{gr}->run( mktree => { input => $content } );
 }
 
+sub create_blobs_and_tree {
+    my (%params) = @_;
+
+    my @files;
+
+    foreach my $file_name (keys %FILES) {
+        push @files, {
+            name => $file_name,
+            sha1 => create_blob_object(
+                gr => $params{gr},
+                content => $FILES{$file_name},
+            ),
+        }
+    }
+
+    my $tree_sha1 = create_tree_object(
+        gr => $params{gr},
+        files => \@files,
+    );
+
+    return $tree_sha1;
+}
+
 sub commit {
     my (%params) = @_;
 
@@ -120,17 +144,11 @@ sub make_first_commit {
 
     my $gr = delete $params{gr};
 
-    my $tree_sha1 = create_tree_object(
+    $FILES{'aaa.md'} = "line 1\nline 2\nline 3\n";
+
+    my $tree_sha1 = create_blobs_and_tree(
         gr => $gr,
-        files => [
-            {
-                name => 'aaa.md',
-                sha1 => create_blob_object(
-                    gr => $gr,
-                    content => "line 1\nline 2\nline 3\n",
-                ),
-            },
-        ],
+        files => \%FILES,
     );
 
     set_commiter(
@@ -157,17 +175,11 @@ sub make_second_commit {
 
     my $gr = delete $params{gr};
 
-    my $tree_sha1 = create_tree_object(
+    $FILES{'aaa.md'} = "line 1\nline 22\nline 3\n";
+
+    my $tree_sha1 = create_blobs_and_tree(
         gr => $gr,
-        files => [
-            {
-                name => 'aaa.md',
-                sha1 => create_blob_object(
-                    gr => $gr,
-                    content => "line 1\nline 22\nline 3\n",
-                ),
-            },
-        ],
+        files => \%FILES,
     );
 
     set_commiter(
@@ -194,24 +206,12 @@ sub make_third_commit {
 
     my $gr = delete $params{gr};
 
-    my $tree_sha1 = create_tree_object(
+    $FILES{'bbb.md'} = '';
+    $FILES{'ccc.md'} = '';
+
+    my $tree_sha1 = create_blobs_and_tree(
         gr => $gr,
-        files => [
-            {
-                name => 'bbb.md',
-                sha1 => create_blob_object(
-                    gr => $gr,
-                    content => '',
-                ),
-            },
-            {
-                name => 'ccc.md',
-                sha1 => create_blob_object(
-                    gr => $gr,
-                    content => '',
-                ),
-            },
-        ],
+        files => \%FILES,
     );
 
     set_commiter(
